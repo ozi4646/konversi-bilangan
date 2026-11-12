@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konverter & Kalkulator Bilangan</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { background: var(--card); width: 100%; max-width: 480px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
+        
+        /* Header & Tabs */
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
+        .header h2 { margin: 0; font-size: 1.4rem; }
+        .tabs { display: flex; background: #e2e8f0; }
+        .tab-btn { flex: 1; padding: 14px; border: none; background: transparent; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: var(--card); color: var(--primary); border-bottom: 3px solid var(--primary); }
+        
+        /* Content */
+        .content { padding: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; color: #334155; }
+        .input-wrapper { display: flex; gap: 8px; }
+        input, select { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        .btn-copy { background: #e2e8f0; border: none; border-radius: 8px; padding: 0 14px; cursor: pointer; font-weight: 600; color: #334155; transition: 0.2s; }
+        .btn-copy:hover { background: #cbd5e1; }
+        .btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-action:hover { background: var(--primary-hover); }
+        .btn-reset { background: #ef4444; margin-top: 8px; }
+        .btn-reset:hover { background: #dc2626; }
+        
+        .calc-result { background: #f8fafc; border: 1.5px dashed var(--border); padding: 15px; border-radius: 8px; margin-top: 16px; }
+        .calc-result p { margin: 6px 0; font-size: 0.95rem; }
+        .calc-result span { font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h2>Sistem Bilangan Digital</h2>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('konverter')">Konverter 2 Arah</button>
+        <button class="tab-btn" onclick="switchTab('kalkulator')">Kalkulator Basis</button>
+    </div>
+
+    <div class="content">
+        <!-- TAB 1: KONVERTER -->
+        <div id="konverter" class="tab-content active">
+            <div class="input-group">
+                <label>Desimal (Basis 10)</label>
+                <div class="input-wrapper">
+                    <input type="text" id="dec" placeholder="Contoh: 255" oninput="convertFrom('dec')">
+                    <button class="btn-copy" onclick="copyText('dec')">Salin</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Biner (Basis 2)</label>
+                <div class="input-wrapper">
+                    <input type="text" id="bin" placeholder="Contoh: 11111111" oninput="convertFrom('bin')">
+                    <button class="btn-copy" onclick="copyText('bin')">Salin</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Oktal (Basis 8)</label>
+                <div class="input-wrapper">
+                    <input type="text" id="oct" placeholder="Contoh: 377" oninput="convertFrom('oct')">
+                    <button class="btn-copy" onclick="copyText('oct')">Salin</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Heksadesimal (Basis 16)</label>
+                <div class="input-wrapper">
+                    <input type="text" id="hex" placeholder="Contoh: FF" oninput="convertFrom('hex')">
+                    <button class="btn-copy" onclick="copyText('hex')">Salin</button>
+                </div>
+            </div>
+
+            <button class="btn-action btn-reset" onclick="resetConverter()">Bersihkan Semua</button>
+        </div>
+
+        <!-- TAB 2: KALKULATOR -->
+        <div id="kalkulator" class="tab-content">
+            <div class="input-group">
+                <label>Pilih Basis Bilangan</label>
+                <select id="calcBase" onchange="clearCalcInputs()">
+                    <option value="2">Biner (Basis 2)</option>
+                    <option value="8">Oktal (Basis 8)</option>
+                    <option value="16">Heksadesimal (Basis 16)</option>
+                    <option value="10">Desimal (Basis 10)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Bilangan Pertama</label>
+                <input type="text" id="num1" placeholder="Masukkan angka pertama">
+            </div>
+
+            <div class="input-group">
+                <label>Operasi</label>
+                <select id="operator">
+                    <option value="+">Penjumlahan (+)</option>
+                    <option value="-">Pengurangan (-)</option>
+                    <option value="*">Perkalian (×)</option>
+                    <option value="/">Pembagian (÷)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Bilangan Kedua</label>
+                <input type="text" id="num2" placeholder="Masukkan angka kedua">
+            </div>
+
+            <button class="btn-action" onclick="calculateBase()">Hitung Hasil</button>
+
+            <div class="calc-result" id="calcOutput" style="display: none;">
+                <p>Hasil (Basis Terpilih): <span id="resSelected">-</span></p>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
+                <p>Desimal: <span id="resDec">-</span></p>
+                <p>Biner: <span id="resBin">-</span></p>
+                <p>Oktal: <span id="resOct">-</span></p>
+                <p>Heksadesimal: <span id="resHex">-</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fungsi Ganti Tab
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    // Logika Konverter 2 Arah + Validasi
+    function convertFrom(source) {
+        const decInput = document.getElementById('dec');
+        const binInput = document.getElementById('bin');
+        const octInput = document.getElementById('oct');
+        const hexInput = document.getElementById('hex');
+
+        let val = document.getElementById(source).value.trim();
+
+        // Validasi karakter berdasarkan basis
+        if (source === 'dec') val = val.replace(/[^0-9]/g, '');
+        if (source === 'bin') val = val.replace(/[^0-1]/g, '');
+        if (source === 'oct') val = val.replace(/[^0-7]/g, '');
+        if (source === 'hex') val = val.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+
+        document.getElementById(source).value = val;
+
+        if (val === '') {
+            resetConverter();
+            return;
+        }
+
+        let decimalValue;
+        if (source === 'dec') decimalValue = parseInt(val, 10);
+        if (source === 'bin') decimalValue = parseInt(val, 2);
+        if (source === 'oct') decimalValue = parseInt(val, 8);
+        if (source === 'hex') decimalValue = parseInt(val, 16);
+
+        if (!isNaN(decimalValue)) {
+            if (source !== 'dec') decInput.value = decimalValue.toString(10);
+            if (source !== 'bin') binInput.value = decimalValue.toString(2);
+            if (source !== 'oct') octInput.value = decimalValue.toString(8);
+            if (source !== 'hex') hexInput.value = decimalValue.toString(16).toUpperCase();
+        }
+    }
+
+    function resetConverter() {
+        document.getElementById('dec').value = '';
+        document.getElementById('bin').value = '';
+        document.getElementById('oct').value = '';
+        document.getElementById('hex').value = '';
+    }
+
+    function copyText(id) {
+        const input = document.getElementById(id);
+        if (input.value === '') return;
+        navigator.clipboard.writeText(input.value);
+        alert('Berhasil disalin: ' + input.value);
+    }
+
+    // Logika Kalkulator Basis
+    function clearCalcInputs() {
+        document.getElementById('num1').value = '';
+        document.getElementById('num2').value = '';
+        document.getElementById('calcOutput').style.display = 'none';
+    }
+
+    function calculateBase() {
+        const base = parseInt(document.getElementById('calcBase').value);
+        const raw1 = document.getElementById('num1').value.trim();
+        const raw2 = document.getElementById('num2').value.trim();
+        const op = document.getElementById('operator').value;
+
+        // Validasi regex sesuai basis
+        const regexMap = {
+            2: /^[0-1]+$/,
+            8: /^[0-7]+$/,
+            10: /^[0-9]+$/,
+            16: /^[0-9a-fA-F]+$/
+        };
+                if (!regexMap[base].test(raw1) || !regexMap[base].test(raw2)) {
+            alert('Input tidak valid untuk basis ' + base + '!');
+            return;
+        }
+
+        const n1 = parseInt(raw1, base);
+        const n2 = parseInt(raw2, base);
+        let resDec = 0;
+
+        if (op === '+') resDec = n1 + n2;
+        if (op === '-') resDec = n1 - n2;
+        if (op === '*') resDec = n1 * n2;
+        if (op === '/') {
+            if (n2 === 0) { alert('Tidak bisa membagi dengan nol!'); return; }
+            resDec = Math.floor(n1 / n2);
+        }
+
+        document.getElementById('calcOutput').style.display = 'block';
+        document.getElementById('resSelected').innerText = resDec.toString(base).toUpperCase();
+        document.getElementById('resDec').innerText = resDec.toString(10);
+        document.getElementById('resBin').innerText = resDec.toString(2);
+        document.getElementById('resOct').innerText = resDec.toString(8);
+        document.getElementById('resHex').innerText = resDec.toString(16).toUpperCase();
+    }
+</script>
+
+</body>
+</html>
